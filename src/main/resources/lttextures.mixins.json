@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.littletextures.mixin",
+  "plugin": "dev.littletextures.mixin.MixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "FallbackResourceManagerMixin",
+    "RenderBoxMixin", "BETilesMixin", "ClientLevelMixin", "SodiumBiomeMixin"
+  ],
+  "injectors": { "defaultRequire": 1 }
+}

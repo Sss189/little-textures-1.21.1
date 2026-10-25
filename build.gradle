@@ -1,0 +1,55 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+group = 'dev.littletextures'
+version = project.mod_version
+base { archivesName = 'lttextures-neoforge-1.21.1' }
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories { mavenCentral() }
+
+neoForge {
+    version = project.neo_version
+    runs {
+        client {
+            client()
+            jvmArgument '-Xmx5G'
+            if (project.hasProperty('smoke')) systemProperty 'lttextures.smoke', 'true'
+        }
+        configureEach {
+            gameDirectory = project.file('run')
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+    mods {
+        lttextures { sourceSet(sourceSets.main) }
+    }
+}
+
+configurations {
+    localRuntime
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
+    if (!project.hasProperty('withoutLT')) localRuntime fileTree(dir: 'libs', include: ['CreativeCore*.jar', 'LittleTiles*.jar'])
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.named('test', Test) { useJUnitPlatform() }
+tasks.named('processResources', ProcessResources) {
+    inputs.property('mod_version', project.mod_version)
+    filesMatching('META-INF/neoforge.mods.toml') { expand(mod_version: project.mod_version) }
+}
+tasks.register('auditPack', JavaExec) {
+    description = 'Audit CTM rules in a resource pack without launching Minecraft.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.littletextures.tools.PackAudit'
+    if (project.hasProperty('pack')) args project.property('pack')
+}
